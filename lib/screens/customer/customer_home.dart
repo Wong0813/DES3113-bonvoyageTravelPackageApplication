@@ -183,6 +183,7 @@ class _CustomerHomeState extends State<CustomerHome> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A1A),
+      drawer: isMobile ? _buildDrawer() : null,
       body: isMobile
           ? SafeArea(
               child: Column(
@@ -220,7 +221,6 @@ class _CustomerHomeState extends State<CustomerHome> {
                 ),
               ],
             ),
-      bottomNavigationBar: isMobile ? _buildBottomNav() : null,
     );
   }
 
@@ -288,9 +288,16 @@ class _CustomerHomeState extends State<CustomerHome> {
 
   Widget _buildMobileTopBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
         children: [
+          Builder(
+            builder: (innerCtx) => IconButton(
+              icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 24),
+              onPressed: () => Scaffold.of(innerCtx).openDrawer(),
+            ),
+          ),
+          const SizedBox(width: 4),
           Container(
             width: 32,
             height: 32,
@@ -610,6 +617,118 @@ class _CustomerHomeState extends State<CustomerHome> {
     );
   }
 
+  Widget _buildDrawer() {
+    final navItems = [
+      {'icon': Icons.explore_rounded, 'label': 'Explore'},
+      {'icon': Icons.flight_rounded, 'label': 'My Trips'},
+      {'icon': Icons.favorite_rounded, 'label': 'Wishlist'},
+      {'icon': Icons.local_offer_rounded, 'label': 'Promotions'},
+      {'icon': Icons.chat_rounded, 'label': 'Chat'},
+    ];
+
+    return Drawer(
+      backgroundColor: const Color(0xFF111128),
+      child: Column(
+        children: [
+          // Header user profile info
+          Container(
+            padding: const EdgeInsets.only(top: 60, bottom: 20, left: 20, right: 20),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF0F0F2D), Color(0xFF111128)],
+              ),
+              border: Border(bottom: BorderSide(color: Colors.white10)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(colors: [Color(0xFF00D4FF), Color(0xFF4ECDC4)]),
+                  ),
+                  child: Center(
+                    child: Text(
+                      _currentUser.username.substring(0, 2).toUpperCase(),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _currentUser.fullName.isNotEmpty ? _currentUser.fullName : _currentUser.username,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _currentUser.memberId ?? 'Explorer',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Navigation items list
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              children: List.generate(
+                navItems.length,
+                (i) => _navItem(
+                  navItems[i]['icon'] as IconData,
+                  navItems[i]['label'] as String,
+                  i == _selectedIndex,
+                  () {
+                    Navigator.pop(context); // close drawer
+                    setState(() => _selectedIndex = i);
+                  },
+                ),
+              ),
+            ),
+          ),
+          const Divider(color: Colors.white10),
+          // Logout item
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: InkWell(
+              onTap: () {
+                Navigator.pop(context); // close drawer
+                _logout();
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.logout_rounded, color: Colors.redAccent, size: 18),
+                    SizedBox(width: 10),
+                    Text('Logout', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600, fontSize: 14)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
   Widget _navItem(IconData icon, String label, bool selected, VoidCallback onTap) {
     const accentColor = Color(0xFF00D4FF);
     return Padding(
@@ -648,62 +767,7 @@ class _CustomerHomeState extends State<CustomerHome> {
     );
   }
 
-  Widget _buildBottomNav() {
-    final items = [
-      {'icon': Icons.explore_rounded, 'label': 'Explore'},
-      {'icon': Icons.flight_rounded, 'label': 'Trips'},
-      {'icon': Icons.favorite_rounded, 'label': 'Wishlist'},
-      {'icon': Icons.local_offer_rounded, 'label': 'Promos'},
-      {'icon': Icons.chat_rounded, 'label': 'Chat'},
-    ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0D0D24),
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(items.length, (i) {
-            final selected = i == _selectedIndex;
-            return GestureDetector(
-              onTap: () => setState(() => _selectedIndex = i),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: selected ? const Color(0xFF00D4FF).withValues(alpha: 0.15) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      items[i]['icon'] as IconData,
-                      color: selected ? const Color(0xFF00D4FF) : Colors.white.withValues(alpha: 0.4),
-                      size: 20,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      items[i]['label'] as String,
-                      style: TextStyle(
-                        color: selected ? const Color(0xFF00D4FF) : Colors.white.withValues(alpha: 0.4),
-                        fontSize: 9,
-                        fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
-  }
 
   void _showNotificationsDialog() {
     showDialog(
