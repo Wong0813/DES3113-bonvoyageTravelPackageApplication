@@ -51,15 +51,6 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _initChat() async {
     _loadBookingContext();
-    if (widget.autoSendMessage != null && widget.autoSendMessage!.isNotEmpty) {
-      try {
-        await ChatService.instance.sendMessage(
-          senderId: widget.user.id,
-          receiverId: widget.agentUserId,
-          message: widget.autoSendMessage!,
-        );
-      } catch (_) {}
-    }
     _loadMessages();
     _timer = Timer.periodic(const Duration(seconds: 3), (_) => _loadMessages());
   }
@@ -86,53 +77,40 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _loadBookingContext() async {
+    if (widget.bookingId == null && widget.packageId == null) {
+      if (mounted) {
+        setState(() {
+          _activeBooking = null;
+          _activePackage = null;
+          _loadingContext = false;
+        });
+      }
+      return;
+    }
+
     setState(() => _loadingContext = true);
     BookingModel? foundBooking;
+    TravelPackageModel? foundPackage;
 
-    // 1. Try resolving using widget.bookingId
     if (widget.bookingId != null) {
       try {
         foundBooking = await BookingService.instance.getBookingById(widget.bookingId!);
+        if (foundBooking != null) {
+          foundPackage = await TravelPackageService.instance.getPackageById(foundBooking.packageId);
+        }
+      } catch (_) {}
+    } else if (widget.packageId != null) {
+      try {
+        foundPackage = await TravelPackageService.instance.getPackageById(widget.packageId!);
       } catch (_) {}
     }
 
-    // 2. Try fallback to latest active booking with this agent
-    if (foundBooking == null) {
-      final list = widget.bookings.where((b) => b.agentId == widget.agentUserId).toList()
-        ..sort((a, b) => b.id.compareTo(a.id));
-      if (list.isNotEmpty) {
-        foundBooking = list.first;
-      }
-    }
-
-    // 3. Load associated travel package
-    if (foundBooking != null) {
-      try {
-        final pkg = await TravelPackageService.instance.getPackageById(foundBooking.packageId);
-        if (mounted) {
-          setState(() {
-            _activeBooking = foundBooking;
-            _activePackage = pkg;
-            _loadingContext = false;
-          });
-        }
-      } catch (_) {
-        if (mounted) setState(() => _loadingContext = false);
-      }
-    } else if (widget.packageId != null) {
-      try {
-        final pkg = await TravelPackageService.instance.getPackageById(widget.packageId!);
-        if (mounted) {
-          setState(() {
-            _activePackage = pkg;
-            _loadingContext = false;
-          });
-        }
-      } catch (_) {
-        if (mounted) setState(() => _loadingContext = false);
-      }
-    } else {
-      if (mounted) setState(() => _loadingContext = false);
+    if (mounted) {
+      setState(() {
+        _activeBooking = foundBooking;
+        _activePackage = foundPackage;
+        _loadingContext = false;
+      });
     }
   }
 
@@ -564,6 +542,22 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  Future<void> _sendTripContext(String message) async {
+    try {
+      await ChatService.instance.sendMessage(
+        senderId: widget.user.id,
+        receiverId: widget.agentUserId,
+        message: message,
+      );
+      _loadMessages();
+      if (mounted) {
+        showAppSnackBar(context, 'Trip info sent to chat!');
+      }
+    } catch (e) {
+      if (mounted) showAppSnackBar(context, '$e', isError: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -621,38 +615,47 @@ class _ChatPageState extends State<ChatPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      if (_activeBooking != null && _activeBooking!.paymentStatus == 'pending') ...[
-                        ElevatedButton(
-                          onPressed: () => _payBooking(_activeBooking!),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF00D4FF),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            minimumSize: Size.zero,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: const Text('Pay Now', style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
-                        ),
-                      ] else ...[
-                        GestureDetector(
-                          onTap: _viewPackageDetails,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: Colors.white10),
+                      Row(
+                        children: [
+                          if (_activeBooking != null && _activeBooking!.paymentStatus == 'pending') ...[
+                            ElevatedButton(
+                              onPressed: () => _payBooking(_activeBooking!),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF00D4FF),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                minimumSize: Size.zero,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: const Text('Pay Now', style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
                             ),
-                            child: const Row(
-                              children: [
-                                Text('View Trip', style: TextStyle(color: Color(0xFF00D4FF), fontSize: 10, fontWeight: FontWeight.bold)),
-                                SizedBox(width: 2),
-                                Icon(Icons.keyboard_arrow_right_rounded, color: Color(0xFF00D4FF), size: 12),
-                              ],
+                            const SizedBox(width: 8),
+                          ],
+                          GestureDetector(
+                            onTap: () {
+                              final msg = _activeBooking != null
+                                  ? 'Hello! I am inquiring about my booking for: ${_activePackage?.destination ?? _activeBooking!.destination} (Booking ID: #${_activeBooking!.id}, Travel Date: ${_activeBooking!.travelDate.toIso8601String().split('T').first}).'
+                                  : 'Hello! I am interested in your travel package: ${_activePackage!.destination}. I would like to ask some questions.';
+                              _sendTripContext(msg);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF00D4FF).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: const Color(0xFF00D4FF).withValues(alpha: 0.2)),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.send_rounded, color: Color(0xFF00D4FF), size: 10),
+                                  SizedBox(width: 4),
+                                  Text('Send Trip', style: TextStyle(color: Color(0xFF00D4FF), fontSize: 10, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                       if (_activeBooking != null) ...[
                         const SizedBox(height: 4),
                         Container(
