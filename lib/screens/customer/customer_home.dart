@@ -155,6 +155,11 @@ class _CustomerHomeState extends State<CustomerHome> {
     final isMobile = screenWidth < 750;
 
     if (_selectedPkg != null) {
+      int resolvedAgentUserId = _selectedPkg!.agentId;
+      try {
+        resolvedAgentUserId = _agents.firstWhere((a) => a.id == _selectedPkg!.agentId).userId;
+      } catch (_) {}
+
       return PackageDetailSheet(
         currentUser: _currentUser,
         pkg: _selectedPkg!,
@@ -163,6 +168,7 @@ class _CustomerHomeState extends State<CustomerHome> {
         avgRating: _avgRating,
         wishlistIds: _wishlistIds,
         bookings: _bookings,
+        agentUserId: resolvedAgentUserId,
         onBack: () => setState(() => _selectedPkg = null),
         onWishlistChanged: (wishlist) {
           setState(() {

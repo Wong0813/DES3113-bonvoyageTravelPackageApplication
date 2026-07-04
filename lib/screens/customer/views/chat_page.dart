@@ -141,6 +141,7 @@ class _ChatPageState extends State<ChatPage> {
             avgRating: avg,
             wishlistIds: widget.wishlistIds,
             bookings: widget.bookings,
+            agentUserId: widget.agentUserId,
             onBack: () => Navigator.pop(context),
             onWishlistChanged: (_) {},
             onBookPackage: (_) {},

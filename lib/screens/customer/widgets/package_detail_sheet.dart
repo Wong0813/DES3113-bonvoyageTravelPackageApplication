@@ -12,6 +12,7 @@ class PackageDetailSheet extends StatelessWidget {
   final double avgRating;
   final List<int> wishlistIds;
   final List<BookingModel> bookings;
+  final int agentUserId;
   final VoidCallback onBack;
   final Function(List<int>) onWishlistChanged;
   final Function(TravelPackageModel) onBookPackage;
@@ -27,6 +28,7 @@ class PackageDetailSheet extends StatelessWidget {
     required this.avgRating,
     required this.wishlistIds,
     required this.bookings,
+    required this.agentUserId,
     required this.onBack,
     required this.onWishlistChanged,
     required this.onBookPackage,
@@ -251,7 +253,7 @@ class PackageDetailSheet extends StatelessWidget {
                             MaterialPageRoute(
                               builder: (_) => ChatPage(
                                 user: currentUser,
-                                agentUserId: pkg.agentId,
+                                agentUserId: agentUserId,
                                 agentName: pkg.companyName,
                                 bookings: bookings,
                                 wishlistIds: wishlistIds.toList(),
