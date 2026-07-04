@@ -239,7 +239,7 @@ class PackageDetailSheet extends StatelessWidget {
                   Builder(
                     builder: (context) {
                       final relevantBookings = bookings.where((b) => b.packageId == pkg.id).toList();
-                      final isBooked = relevantBookings.isNotEmpty;
+                      final isBooked = relevantBookings.isNotEmpty && fromBooking;
                       final autoMsg = isBooked
                           ? 'Hello! I am inquiring about my booking for: ${pkg.destination} (Booking ID: #${relevantBookings.first.id}, Travel Date: ${relevantBookings.first.travelDate.toIso8601String().split('T').first}).'
                           : 'Hello! I am interested in your travel package: ${pkg.destination}. I would like to ask some questions.';
