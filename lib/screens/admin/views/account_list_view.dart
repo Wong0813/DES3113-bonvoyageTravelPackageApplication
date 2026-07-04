@@ -32,25 +32,9 @@ class AccountListView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-            Row(
-              children: [
-                ElevatedButton.icon(
-                  onPressed: onAddAccount,
-                  icon: const Icon(Icons.person_add_rounded, size: 16),
-                  label: const Text('Add Account', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00D4FF),
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.refresh, color: Color(0xFF00D4FF)),
-                  onPressed: onRefresh,
-                ),
-              ],
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Color(0xFF00D4FF)),
+              onPressed: onRefresh,
             ),
           ],
         ),

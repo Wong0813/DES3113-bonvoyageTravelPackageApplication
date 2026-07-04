@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/models.dart';
 import '../../../services/wishlist_service.dart';
 import '../../../utils/app_theme.dart';
+import '../views/chat_page.dart';
 
 class PackageDetailSheet extends StatelessWidget {
   final UserModel currentUser;
@@ -206,6 +207,68 @@ class PackageDetailSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
+            // Company / Agent info with Chat button
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.03),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00D4FF).withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.business_rounded, color: Color(0xFF00D4FF), size: 18),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(pkg.companyName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                        Text('Travel Agency', style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                  // Chat button — available for confirmed/completed bookings with this company
+                  Builder(
+                    builder: (context) {
+                      final hasBookingWithAgent = bookings.any((b) =>
+                          b.agentId == pkg.agentId &&
+                          (b.status == 'confirmed' || b.status == 'completed'));
+                      if (!hasBookingWithAgent) return const SizedBox.shrink();
+                      return ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChatPage(
+                                user: currentUser,
+                                agentUserId: pkg.agentId,
+                                agentName: pkg.companyName,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Colors.black),
+                        label: const Text('Chat', style: TextStyle(fontSize: 12, color: Colors.black, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF00D4FF),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -268,7 +331,8 @@ class PackageDetailSheet extends StatelessWidget {
     }
     final b = relevantBookings.first;
     final isUnpaid = b.paymentStatus == 'pending';
-    final canWriteReview = b.canReview && b.paymentStatus == 'paid';
+    // Only allow review after trip is COMPLETED (status == 'completed')
+    final canWriteReview = b.status == 'completed' && b.paymentStatus == 'paid' && !b.isReviewed;
 
     return Row(
       mainAxisSize: MainAxisSize.min,

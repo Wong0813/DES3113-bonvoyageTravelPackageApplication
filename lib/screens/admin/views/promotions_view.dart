@@ -88,7 +88,13 @@ class PromotionsView extends StatelessWidget {
                   decoration: BoxDecoration(color: const Color(0xFF00D4FF).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
                   child: const Icon(Icons.card_giftcard_rounded, color: Color(0xFF00D4FF), size: 20),
                 ),
-                title: Text(v.code, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                title: Row(
+                  children: [
+                    Text(v.code, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(width: 8),
+                    _buildVoucherStatusBadge(v),
+                  ],
+                ),
                 subtitle: Text(
                   'Discount: ${v.discountValue}${v.discountType == 'percent' ? '%' : ' RM'}  |  Redeemed: ${v.usedCount} / ${v.maxUses}  |  Min Purchase: RM ${v.minPurchase.toStringAsFixed(0)}',
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12),
@@ -167,6 +173,20 @@ class PromotionsView extends StatelessWidget {
             )),
       ],
     );
+  }
+
+  Widget _buildVoucherStatusBadge(VoucherModel v) {
+    if (v.status != 'active') {
+      return _badge('INACTIVE', Colors.white30, Colors.white54);
+    }
+    final now = DateTime.now();
+    if (v.validFrom != null && now.isBefore(v.validFrom!)) {
+      return _badge('SCHEDULED', Colors.amber.withValues(alpha: 0.15), Colors.amberAccent);
+    }
+    if (v.validUntil != null && now.isAfter(v.validUntil!)) {
+      return _badge('EXPIRED', Colors.red.withValues(alpha: 0.15), Colors.redAccent);
+    }
+    return _badge('RUNNING', Colors.green.withValues(alpha: 0.15), Colors.greenAccent);
   }
 
   Widget _buildPromotionStatusBadge(PromotionModel p) {

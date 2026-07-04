@@ -46,7 +46,8 @@ class TripsView extends StatelessWidget {
                 itemBuilder: (context, idx) {
                   final b = bookings[idx];
                   final isUnpaid = b.paymentStatus == 'pending';
-                  final canWriteReview = b.canReview && b.paymentStatus == 'paid';
+                  // Only allow review after trip is COMPLETED (status == 'completed'), not just confirmed
+                  final canWriteReview = b.status == 'completed' && b.paymentStatus == 'paid' && !b.isReviewed;
                   final pkg = _findPackageById(b.packageId);
 
                   return Container(
