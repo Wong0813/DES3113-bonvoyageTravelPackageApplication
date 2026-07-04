@@ -32,19 +32,22 @@ class TripsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sortedBookings = List<BookingModel>.from(bookings)
+      ..sort((a, b) => b.id.compareTo(a.id));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Booking History', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
-        bookings.isEmpty
+        sortedBookings.isEmpty
             ? const Center(child: Padding(padding: EdgeInsets.all(40), child: Text('No bookings yet', style: TextStyle(color: Colors.white38))))
             : ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: bookings.length,
+                itemCount: sortedBookings.length,
                 itemBuilder: (context, idx) {
-                  final b = bookings[idx];
+                  final b = sortedBookings[idx];
                   final isUnpaid = b.paymentStatus == 'pending';
                   // Only allow review after trip is COMPLETED (status == 'completed'), not just confirmed
                   final canWriteReview = b.status == 'completed' && b.paymentStatus == 'paid' && !b.isReviewed;

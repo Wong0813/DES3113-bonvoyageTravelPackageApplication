@@ -278,6 +278,8 @@ class _CustomerHomeState extends State<CustomerHome> {
         return ChatView(
           user: _currentUser,
           agents: bookedAgents,
+          bookings: _bookings,
+          allPackages: _allPackages,
           onOpenChat: _openChatScreen,
         );
       default:
@@ -736,11 +738,19 @@ class _CustomerHomeState extends State<CustomerHome> {
     );
   }
 
-  void _openChatScreen(AgentProfileModel agent) {
+  void _openChatScreen(AgentProfileModel agent, {int? bookingId, int? packageId}) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ChatPage(user: _currentUser, agentUserId: agent.userId, agentName: agent.companyName),
+        builder: (_) => ChatPage(
+          user: _currentUser,
+          agentUserId: agent.userId,
+          agentName: agent.companyName,
+          bookingId: bookingId,
+          packageId: packageId,
+          bookings: _bookings,
+          wishlistIds: _wishlistIds,
+        ),
       ),
     );
   }

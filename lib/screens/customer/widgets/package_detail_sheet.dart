@@ -251,6 +251,8 @@ class PackageDetailSheet extends StatelessWidget {
                                 user: currentUser,
                                 agentUserId: pkg.agentId,
                                 agentName: pkg.companyName,
+                                bookings: bookings,
+                                wishlistIds: wishlistIds,
                               ),
                             ),
                           );
