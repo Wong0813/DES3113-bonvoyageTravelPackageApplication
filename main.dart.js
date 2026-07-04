@@ -51468,7 +51468,7 @@ $0(){var s=this.a
 return s.Q.$1(s.d)},
 $S:0}
 A.ah1.prototype={
-$1(a){var s,r=null,q=this.a,p=J.ki(q.x,new A.agX(q)),o=A.a5(p,p.$ti.i("I.E")),n=o.length!==0
+$1(a){var s,r=null,q=this.a,p=J.ki(q.x,new A.agX(q)),o=A.a5(p,p.$ti.i("I.E")),n=o.length!==0&&q.e
 p=q.d.c
 s=n?u.u+p+" (Booking ID: #"+B.b.ga_(o).a+", Travel Date: "+B.b.ga_(B.b.ga_(o).at.it().split("T"))+").":u.Y+p+". I would like to ask some questions."
 return A.kv(B.OB,B.a6x,new A.agY(q,a,n,o,s),A.cu(r,r,B.r,r,r,r,r,r,r,r,r,r,B.hh,r,new A.aW(A.T(10),B.p),r,r,r,r,r))},
