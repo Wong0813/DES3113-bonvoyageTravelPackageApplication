@@ -333,8 +333,8 @@ class PackageDetailSheet extends StatelessWidget {
     }
     final b = relevantBookings.first;
     final isUnpaid = b.paymentStatus == 'pending';
-    // Only allow review after trip is COMPLETED (status == 'completed')
-    final canWriteReview = b.status == 'completed' && b.paymentStatus == 'paid' && !b.isReviewed;
+    // Allow review after payment is completed (paid)
+    final canWriteReview = b.paymentStatus == 'paid' && !b.isReviewed;
 
     return Row(
       mainAxisSize: MainAxisSize.min,

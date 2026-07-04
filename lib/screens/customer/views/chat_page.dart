@@ -58,7 +58,11 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _loadMessages() async {
     try {
-      final msgs = await ChatService.instance.getConversation(widget.user.id, widget.agentUserId);
+      final msgs = await ChatService.instance.getConversation(
+        widget.user.id,
+        widget.agentUserId,
+        bookingId: widget.bookingId,
+      );
       if (mounted) {
         setState(() {
           _messages = msgs;
@@ -534,6 +538,7 @@ class _ChatPageState extends State<ChatPage> {
         senderId: widget.user.id,
         receiverId: widget.agentUserId,
         message: _msgCtrl.text.trim(),
+        bookingId: widget.bookingId,
       );
       _msgCtrl.clear();
       _loadMessages();

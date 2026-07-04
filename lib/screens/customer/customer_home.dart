@@ -267,18 +267,11 @@ class _CustomerHomeState extends State<CustomerHome> {
       case 3:
         return CustomerPromotionsView(user: _currentUser);
       case 4:
-        // Only show agents from companies the user has an active booking with
-        final bookedAgentIds = _bookings
-            .where((b) => b.status == 'confirmed' || b.status == 'completed')
-            .map((b) => b.agentId)
-            .toSet();
-        final bookedAgents = _agents
-            .where((a) => bookedAgentIds.contains(a.userId))
-            .toList();
+        final chatBookings = _bookings.where((b) => b.status != 'cancelled').toList();
         return ChatView(
           user: _currentUser,
-          agents: bookedAgents,
-          bookings: _bookings,
+          agents: _agents,
+          bookings: chatBookings,
           allPackages: _allPackages,
           onOpenChat: _openChatScreen,
         );

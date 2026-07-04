@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/models.dart';
+import '../../../utils/app_theme.dart';
 
 class ChatView extends StatelessWidget {
   final UserModel user;
@@ -45,7 +46,7 @@ class ChatView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        agents.isEmpty
+        bookings.isEmpty
             ? Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(32),
@@ -74,12 +75,29 @@ class ChatView extends StatelessWidget {
             : ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: agents.length,
+                itemCount: bookings.length,
                 itemBuilder: (context, idx) {
-                  final ag = agents[idx];
-                  // Find user's bookings with this agent
-                  final agentBookings = bookings.where((b) => b.agentId == ag.userId).toList()
-                    ..sort((a, b) => b.id.compareTo(a.id)); // latest first
+                  final b = bookings[idx];
+                  // Find travel package to show the package image (图片位置)
+                  TravelPackageModel? pkg;
+                  try {
+                    pkg = allPackages.firstWhere((p) => p.id == b.packageId);
+                  } catch (_) {}
+
+                  // Find agent profile corresponding to booking agentId
+                  final ag = agents.firstWhere(
+                    (a) => a.userId == b.agentId,
+                    orElse: () => AgentProfileModel(
+                      id: b.agentId,
+                      agentId: 'AGT0000',
+                      userId: b.agentId,
+                      companyName: b.companyName,
+                      phone: '',
+                      location: '',
+                      rating: 0.0,
+                      chatResponseRate: 100,
+                    ),
+                  );
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
@@ -88,115 +106,76 @@ class ChatView extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ListTile(
-                          leading: CircleAvatar(
-                            backgroundColor: const Color(0xFF00D4FF),
-                            child: Text(ag.companyName[0].toUpperCase(), style: const TextStyle(color: Colors.white)),
-                          ),
-                          title: Text(ag.companyName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          subtitle: Text(ag.location, style: const TextStyle(color: Colors.white54)),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF00D4FF)),
-                            onPressed: () {
-                              final latestBooking = agentBookings.isNotEmpty ? agentBookings.first : null;
-                              onOpenChat(
-                                ag,
-                                bookingId: latestBooking?.id,
-                                packageId: latestBooking?.packageId,
-                              );
-                            },
-                          ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: AppTheme.buildPackageImage(
+                          pkg?.images ?? const [],
+                          size: 48,
+                          radius: 12,
                         ),
-                        if (agentBookings.isNotEmpty) ...[
-                          const Divider(height: 1, color: Colors.white10),
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'YOUR BOOKINGS',
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.4),
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                ...agentBookings.take(2).map((b) {
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 6),
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.03),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: InkWell(
-                                      onTap: () {
-                                        onOpenChat(
-                                          ag,
-                                          bookingId: b.id,
-                                          packageId: b.packageId,
-                                        );
-                                      },
-                                      child: Row(
-                                        children: [
-                                          const Icon(Icons.flight_takeoff_rounded, color: Color(0xFF00D4FF), size: 16),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  b.destination,
-                                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                                                ),
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  'Travel: ${b.travelDate.toIso8601String().split('T').first} • ${b.numPeople} Pax',
-                                                  style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: b.status == 'completed'
-                                                  ? Colors.blue.withValues(alpha: 0.15)
-                                                  : b.status == 'confirmed'
-                                                      ? Colors.green.withValues(alpha: 0.15)
-                                                      : Colors.orange.withValues(alpha: 0.15),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Text(
-                                              b.status.toUpperCase(),
-                                              style: TextStyle(
-                                                color: b.status == 'completed'
-                                                    ? Colors.blueAccent
-                                                    : b.status == 'confirmed'
-                                                        ? Colors.greenAccent
-                                                        : Colors.orangeAccent,
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ],
+                      ),
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              b.destination,
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: b.status == 'completed'
+                                  ? Colors.blue.withValues(alpha: 0.15)
+                                  : b.status == 'confirmed'
+                                      ? Colors.green.withValues(alpha: 0.15)
+                                      : Colors.orange.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              b.status.toUpperCase(),
+                              style: TextStyle(
+                                color: b.status == 'completed'
+                                    ? Colors.blueAccent
+                                    : b.status == 'confirmed'
+                                        ? Colors.greenAccent
+                                        : Colors.orangeAccent,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
-                      ],
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Agency: ${b.companyName}',
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Travel Date: ${b.travelDate.toIso8601String().split('T').first} • ${b.numPeople} Pax',
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                      trailing: const Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF00D4FF)),
+                      onTap: () {
+                        onOpenChat(
+                          ag,
+                          bookingId: b.id,
+                          packageId: b.packageId,
+                        );
+                      },
                     ),
                   );
                 },

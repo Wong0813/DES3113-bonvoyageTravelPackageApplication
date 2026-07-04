@@ -312,6 +312,10 @@ async function createTablesAndSeed() {
       )
     `);
 
+    try {
+      await connection.query('ALTER TABLE chat_messages ADD COLUMN booking_id INT DEFAULT NULL');
+    } catch (_) {}
+
     await connection.query(`
       CREATE TABLE IF NOT EXISTS review_reports (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -1655,11 +1659,11 @@ app.put('/api/notifications/:id/read', async (req, res) => {
 
 // CHAT ENDPOINTS
 app.post('/api/chats/message', async (req, res) => {
-  const { senderId, receiverId, message } = req.body;
+  const { senderId, receiverId, message, bookingId } = req.body;
   try {
     await pool.query(
-      'INSERT INTO chat_messages (sender_id, receiver_id, message) VALUES (?, ?, ?)',
-      [senderId, receiverId, message]
+      'INSERT INTO chat_messages (sender_id, receiver_id, message, booking_id) VALUES (?, ?, ?, ?)',
+      [senderId, receiverId, message, bookingId || null]
     );
     res.json({ success: true });
   } catch (err) {
@@ -1668,24 +1672,43 @@ app.post('/api/chats/message', async (req, res) => {
 });
 
 app.get('/api/chats/conversation', async (req, res) => {
-  const { user1, user2 } = req.query;
+  const { user1, user2, bookingId } = req.query;
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    const [rows] = await connection.query(`
-      SELECT cm.*, u.username as sender_name
-      FROM chat_messages cm
-      JOIN users u ON cm.sender_id = u.id
-      WHERE (cm.sender_id = ? AND cm.receiver_id = ?)
-         OR (cm.sender_id = ? AND cm.receiver_id = ?)
-      ORDER BY cm.created_at ASC
-    `, [user1, user2, user2, user1]);
+    let rows;
+    if (bookingId && bookingId !== 'null' && bookingId !== 'undefined') {
+      [rows] = await connection.query(`
+        SELECT cm.*, u.username as sender_name
+        FROM chat_messages cm
+        JOIN users u ON cm.sender_id = u.id
+        WHERE ((cm.sender_id = ? AND cm.receiver_id = ?)
+           OR (cm.sender_id = ? AND cm.receiver_id = ?))
+          AND cm.booking_id = ?
+        ORDER BY cm.created_at ASC
+      `, [user1, user2, user2, user1, bookingId]);
 
-    await connection.query(
-      'UPDATE chat_messages SET is_read = 1 WHERE sender_id = ? AND receiver_id = ? AND is_read = 0',
-      [user2, user1]
-    );
+      await connection.query(
+        'UPDATE chat_messages SET is_read = 1 WHERE sender_id = ? AND receiver_id = ? AND booking_id = ? AND is_read = 0',
+        [user2, user1, bookingId]
+      );
+    } else {
+      [rows] = await connection.query(`
+        SELECT cm.*, u.username as sender_name
+        FROM chat_messages cm
+        JOIN users u ON cm.sender_id = u.id
+        WHERE ((cm.sender_id = ? AND cm.receiver_id = ?)
+           OR (cm.sender_id = ? AND cm.receiver_id = ?))
+          AND cm.booking_id IS NULL
+        ORDER BY cm.created_at ASC
+      `, [user1, user2, user2, user1]);
+
+      await connection.query(
+        'UPDATE chat_messages SET is_read = 1 WHERE sender_id = ? AND receiver_id = ? AND booking_id IS NULL AND is_read = 0',
+        [user2, user1]
+      );
+    }
 
     await connection.commit();
     res.json(rows.map(r => mapRow(r)));

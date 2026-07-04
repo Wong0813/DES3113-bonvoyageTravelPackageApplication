@@ -9,18 +9,21 @@ class ChatService {
     required int senderId,
     required int receiverId,
     required String message,
+    int? bookingId,
   }) async {
     await ApiClient.instance.post('/api/chats/message', {
       'senderId': senderId,
       'receiverId': receiverId,
       'message': message,
+      if (bookingId != null) 'bookingId': bookingId,
     });
   }
 
-  Future<List<ChatMessageModel>> getConversation(int userId1, int userId2) async {
+  Future<List<ChatMessageModel>> getConversation(int userId1, int userId2, {int? bookingId}) async {
     final res = await ApiClient.instance.get('/api/chats/conversation', queryParameters: {
       'user1': userId1.toString(),
       'user2': userId2.toString(),
+      if (bookingId != null) 'bookingId': bookingId.toString(),
     });
     if (res == null) return [];
     return List<ChatMessageModel>.from((res as List).map((row) {

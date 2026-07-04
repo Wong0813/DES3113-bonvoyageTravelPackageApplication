@@ -33,7 +33,7 @@ class TripsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sortedBookings = List<BookingModel>.from(bookings)
-      ..sort((a, b) => b.id.compareTo(a.id));
+      ..sort((a, b) => b.travelDate.compareTo(a.travelDate));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,8 +49,8 @@ class TripsView extends StatelessWidget {
                 itemBuilder: (context, idx) {
                   final b = sortedBookings[idx];
                   final isUnpaid = b.paymentStatus == 'pending';
-                  // Only allow review after trip is COMPLETED (status == 'completed'), not just confirmed
-                  final canWriteReview = b.status == 'completed' && b.paymentStatus == 'paid' && !b.isReviewed;
+                  // Allow review after payment is completed (paid)
+                  final canWriteReview = b.paymentStatus == 'paid' && !b.isReviewed;
                   final pkg = _findPackageById(b.packageId);
 
                   return Container(
