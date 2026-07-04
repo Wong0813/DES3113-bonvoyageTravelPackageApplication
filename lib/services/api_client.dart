@@ -8,17 +8,27 @@ class ApiClient {
   static final ApiClient instance = ApiClient._();
 
   static String get baseUrl {
-    if (kIsWeb) return 'https://bonvoyage-backend-tcc3.onrender.com';
+    if (kIsWeb) {
+      if (Uri.base.host == 'localhost' || Uri.base.host == '127.0.0.1') {
+        return 'http://localhost:3000';
+      }
+      return 'https://bonvoyage-backend-tcc3.onrender.com';
+    }
     if (Platform.isAndroid) return 'http://10.0.2.2:3000';
     return 'http://localhost:3000';
   }
 
   Future<dynamic> get(String path, {Map<String, String>? queryParameters}) async {
     Uri uri = Uri.parse('$baseUrl$path');
-    if (queryParameters != null) {
-      uri = uri.replace(queryParameters: queryParameters);
-    }
-    final response = await http.get(uri);
+    final Map<String, String> params = Map<String, String>.from(queryParameters ?? {});
+    params['_t'] = DateTime.now().millisecondsSinceEpoch.toString();
+    uri = uri.replace(queryParameters: params);
+
+    final response = await http.get(uri, headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    });
     return _handleResponse(response);
   }
 

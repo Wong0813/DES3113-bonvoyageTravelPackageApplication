@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../models/models.dart';
 import '../../../services/chat_service.dart';
@@ -15,15 +16,18 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final _msgCtrl = TextEditingController();
   List<ChatMessageModel> _messages = [];
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _timer = Timer.periodic(const Duration(seconds: 3), (_) => _load());
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _msgCtrl.dispose();
     super.dispose();
   }
