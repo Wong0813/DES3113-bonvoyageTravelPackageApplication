@@ -32,8 +32,11 @@ class BookingService {
     return res['id'] as int;
   }
 
-  Future<void> confirmPayment(int bookingId, int userId) async {
-    await ApiClient.instance.post('/api/bookings/$bookingId/pay', {'userId': userId});
+  Future<void> confirmPayment(int bookingId, int userId, {String? paymentMethod}) async {
+    await ApiClient.instance.post('/api/bookings/$bookingId/pay', {
+      'userId': userId,
+      if (paymentMethod != null) 'paymentMethod': paymentMethod,
+    });
   }
 
   Future<void> updateBookingStatus(int bookingId, String status, {int? agentId}) async {
@@ -107,6 +110,7 @@ class BookingService {
       destination: map['destination'] ?? '',
       companyName: map['company_name'] ?? '',
       isReviewed: (int.tryParse(map['review_count'] ?? '0') ?? 0) > 0,
+      paymentMethod: map['payment_method'],
     );
   }
 }

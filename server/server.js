@@ -188,6 +188,10 @@ async function createTablesAndSeed() {
     `);
 
     try {
+      await connection.query("ALTER TABLE bookings ADD COLUMN payment_method VARCHAR(50) DEFAULT NULL");
+    } catch (_) {}
+
+    try {
       const [categoryCols] = await connection.query(
         "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'travel_packages' AND COLUMN_NAME = 'category'",
         [dbName]
@@ -1201,11 +1205,11 @@ app.post('/api/bookings', async (req, res) => {
 });
 
 app.post('/api/bookings/:id/pay', async (req, res) => {
-  const { userId } = req.body;
+  const { userId, paymentMethod } = req.body;
   try {
     await pool.query(
-      `UPDATE bookings SET payment_status = 'paid', status = 'confirmed' WHERE id = ? AND user_id = ?`,
-      [req.params.id, userId]
+      `UPDATE bookings SET payment_status = 'paid', status = 'confirmed', payment_method = ? WHERE id = ? AND user_id = ?`,
+      [paymentMethod || null, req.params.id, userId]
     );
     await pool.query(
       "INSERT INTO notifications (user_id, title, message) VALUES (?, 'Payment Confirmed', ?)",

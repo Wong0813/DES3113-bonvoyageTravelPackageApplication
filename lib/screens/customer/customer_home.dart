@@ -1133,7 +1133,11 @@ class _CustomerHomeState extends State<CustomerHome> {
                             if (!ctx.mounted) return;
 
                             try {
-                              await BookingService.instance.confirmPayment(b.id, _currentUser.id);
+                              await BookingService.instance.confirmPayment(
+                                b.id,
+                                _currentUser.id,
+                                paymentMethod: selectedPaymentMethod,
+                              );
                               setState(() {
                                 isProcessing = false;
                                 isSuccess = true;

@@ -18,6 +18,7 @@ class BookingModel {
   final String destination;
   final String companyName;
   final bool isReviewed;
+  final String? paymentMethod;
 
   const BookingModel({
     required this.id,
@@ -39,6 +40,7 @@ class BookingModel {
     this.destination = '',
     this.companyName = '',
     this.isReviewed = false,
+    this.paymentMethod,
   });
 
   bool get isCompleted => status == 'completed';

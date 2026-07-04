@@ -502,7 +502,11 @@ class _ChatPageState extends State<ChatPage> {
                             await Future.delayed(const Duration(milliseconds: 600));
 
                             try {
-                              await BookingService.instance.confirmPayment(b.id, widget.user.id);
+                              await BookingService.instance.confirmPayment(
+                                b.id,
+                                widget.user.id,
+                                paymentMethod: selectedPaymentMethod,
+                              );
                               setState(() {
                                 isProcessing = false;
                                 isSuccess = true;

@@ -108,9 +108,41 @@ class BookingsView extends StatelessWidget {
                 ),
                 subtitle: Padding(
                   padding: const EdgeInsets.only(top: 6.0),
-                  child: Text(
-                    'Guest: ${b.guestName}  |  People: ${b.numPeople} pax\nTotal Price: RM ${b.totalPrice.toStringAsFixed(2)}\nPayment: ${b.paymentStatus.toUpperCase()}',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Lead Guest: ${b.guestName}  |  People: ${b.numPeople} pax\nTotal Price: RM ${b.totalPrice.toStringAsFixed(2)}',
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Traveler IC/Passport: ${b.icPassport}',
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11, fontStyle: FontStyle.italic),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(
+                            'Status: ${b.paymentStatus.toUpperCase()}',
+                            style: TextStyle(
+                              color: b.paymentStatus == 'paid' ? Colors.greenAccent : Colors.orangeAccent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (b.paymentMethod != null) ...[
+                            const SizedBox(width: 8),
+                            const Text('•', style: TextStyle(color: Colors.white30)),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Method: ${_formatPaymentMethod(b.paymentMethod!)}',
+                              style: const TextStyle(color: Color(0xFF00D4FF), fontSize: 11, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ),
                 ),
                 trailing: Row(
@@ -150,5 +182,20 @@ class BookingsView extends StatelessWidget {
           }),
       ],
     );
+  }
+
+  String _formatPaymentMethod(String method) {
+    switch (method.toLowerCase()) {
+      case 'credit_card':
+        return 'Credit/Debit Card';
+      case 'fpx':
+        return 'FPX Online Banking';
+      case 'grabpay':
+        return 'GrabPay';
+      case 'tng':
+        return 'Touch \'n Go eWallet';
+      default:
+        return method;
+    }
   }
 }
