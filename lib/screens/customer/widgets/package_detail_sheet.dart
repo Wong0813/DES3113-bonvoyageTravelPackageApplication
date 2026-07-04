@@ -235,13 +235,15 @@ class PackageDetailSheet extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Chat button — available for confirmed/completed bookings with this company
+                  // Chat button — open to all to ask questions or enquire about orders
                   Builder(
                     builder: (context) {
-                      final hasBookingWithAgent = bookings.any((b) =>
-                          b.agentId == pkg.agentId &&
-                          (b.status == 'confirmed' || b.status == 'completed'));
-                      if (!hasBookingWithAgent) return const SizedBox.shrink();
+                      final relevantBookings = bookings.where((b) => b.packageId == pkg.id).toList();
+                      final isBooked = relevantBookings.isNotEmpty;
+                      final autoMsg = isBooked
+                          ? 'Hello! I am inquiring about my booking for: ${pkg.destination} (Booking ID: #${relevantBookings.first.id}, Travel Date: ${relevantBookings.first.travelDate.toIso8601String().split('T').first}).'
+                          : 'Hello! I am interested in your travel package: ${pkg.destination}. I would like to ask some questions.';
+
                       return ElevatedButton.icon(
                         onPressed: () {
                           Navigator.push(
@@ -252,7 +254,10 @@ class PackageDetailSheet extends StatelessWidget {
                                 agentUserId: pkg.agentId,
                                 agentName: pkg.companyName,
                                 bookings: bookings,
-                                wishlistIds: wishlistIds,
+                                wishlistIds: wishlistIds.toList(),
+                                bookingId: isBooked ? relevantBookings.first.id : null,
+                                packageId: pkg.id,
+                                autoSendMessage: autoMsg,
                               ),
                             ),
                           );

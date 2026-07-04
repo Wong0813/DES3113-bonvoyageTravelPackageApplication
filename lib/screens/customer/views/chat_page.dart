@@ -16,6 +16,7 @@ class ChatPage extends StatefulWidget {
   final int? packageId;
   final List<BookingModel> bookings;
   final List<int> wishlistIds;
+  final String? autoSendMessage;
 
   const ChatPage({
     super.key,
@@ -26,6 +27,7 @@ class ChatPage extends StatefulWidget {
     this.packageId,
     required this.bookings,
     required this.wishlistIds,
+    this.autoSendMessage,
   });
 
   @override
@@ -44,8 +46,21 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-    _loadMessages();
+    _initChat();
+  }
+
+  Future<void> _initChat() async {
     _loadBookingContext();
+    if (widget.autoSendMessage != null && widget.autoSendMessage!.isNotEmpty) {
+      try {
+        await ChatService.instance.sendMessage(
+          senderId: widget.user.id,
+          receiverId: widget.agentUserId,
+          message: widget.autoSendMessage!,
+        );
+      } catch (_) {}
+    }
+    _loadMessages();
     _timer = Timer.periodic(const Duration(seconds: 3), (_) => _loadMessages());
   }
 
@@ -61,7 +76,6 @@ class _ChatPageState extends State<ChatPage> {
       final msgs = await ChatService.instance.getConversation(
         widget.user.id,
         widget.agentUserId,
-        bookingId: widget.bookingId,
       );
       if (mounted) {
         setState(() {
@@ -542,7 +556,6 @@ class _ChatPageState extends State<ChatPage> {
         senderId: widget.user.id,
         receiverId: widget.agentUserId,
         message: _msgCtrl.text.trim(),
-        bookingId: widget.bookingId,
       );
       _msgCtrl.clear();
       _loadMessages();

@@ -731,7 +731,7 @@ class _CustomerHomeState extends State<CustomerHome> {
     );
   }
 
-  void _openChatScreen(AgentProfileModel agent, {int? bookingId, int? packageId}) {
+  void _openChatScreen(AgentProfileModel agent, {int? bookingId, int? packageId, String? autoSendMessage}) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -743,6 +743,7 @@ class _CustomerHomeState extends State<CustomerHome> {
           packageId: packageId,
           bookings: _bookings,
           wishlistIds: _wishlistIds,
+          autoSendMessage: autoSendMessage,
         ),
       ),
     );
