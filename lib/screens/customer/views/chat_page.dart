@@ -36,6 +36,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final _msgCtrl = TextEditingController();
+  final _scrollCtrl = ScrollController();
   List<ChatMessageModel> _messages = [];
   Timer? _timer;
 
@@ -52,16 +53,18 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _initChat() async {
     _loadBookingContext();
     _loadMessages();
-    _timer = Timer.periodic(const Duration(seconds: 3), (_) => _loadMessages());
+    _timer = Timer.periodic(const Duration(seconds: 2), (_) => _pollMessages());
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _scrollCtrl.dispose();
     _msgCtrl.dispose();
     super.dispose();
   }
 
+  /// Full load — always updates state and scrolls to bottom.
   Future<void> _loadMessages() async {
     try {
       final msgs = await ChatService.instance.getConversation(
@@ -72,8 +75,36 @@ class _ChatPageState extends State<ChatPage> {
         setState(() {
           _messages = msgs;
         });
+        _scrollToBottom();
       }
     } catch (_) {}
+  }
+
+  /// Polling load — only updates state when there are actually new messages.
+  Future<void> _pollMessages() async {
+    try {
+      final msgs = await ChatService.instance.getConversation(
+        widget.user.id,
+        widget.agentUserId,
+      );
+      if (!mounted) return;
+      if (msgs.length != _messages.length || (msgs.isNotEmpty && _messages.isNotEmpty && msgs.last.id != _messages.last.id)) {
+        setState(() => _messages = msgs);
+        _scrollToBottom();
+      }
+    } catch (_) {}
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollCtrl.hasClients) {
+        _scrollCtrl.animateTo(
+          _scrollCtrl.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   Future<void> _loadBookingContext() async {
@@ -692,6 +723,7 @@ class _ChatPageState extends State<ChatPage> {
 
           Expanded(
             child: ListView.builder(
+              controller: _scrollCtrl,
               padding: const EdgeInsets.all(16),
               itemCount: _messages.length,
               itemBuilder: (context, idx) {
@@ -702,11 +734,22 @@ class _ChatPageState extends State<ChatPage> {
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
                     decoration: BoxDecoration(
                       color: isMe ? const Color(0xFF00D4FF) : const Color(0xFF1E1E38),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(m.message, style: TextStyle(color: isMe ? Colors.black : Colors.white, fontSize: 13.5)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(m.message, style: TextStyle(color: isMe ? Colors.black : Colors.white, fontSize: 13.5)),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${m.createdAt.hour.toString().padLeft(2, '0')}:${m.createdAt.minute.toString().padLeft(2, '0')}',
+                          style: TextStyle(color: isMe ? Colors.black45 : Colors.white30, fontSize: 10),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

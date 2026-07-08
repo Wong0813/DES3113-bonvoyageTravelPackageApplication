@@ -1696,6 +1696,9 @@ app.get('/api/chats/conversation', async (req, res) => {
     );
 
     await connection.commit();
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.json(rows.map(r => mapRow(r)));
   } catch (err) {
     await connection.rollback();
@@ -1718,6 +1721,9 @@ app.get('/api/chats/contacts/:userId', async (req, res) => {
       WHERE cm.sender_id = ? OR cm.receiver_id = ?
     `, [req.params.userId, req.params.userId, req.params.userId, req.params.userId]);
 
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.json(rows.map(r => ({
       userId: r.contact_id,
       username: r.username,
