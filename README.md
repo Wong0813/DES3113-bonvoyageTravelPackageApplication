@@ -5,12 +5,23 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=nodedotjs)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-4.x-000000?logo=express)](https://expressjs.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?logo=mysql)](https://www.mysql.com/)
+[![Live Demo](https://img.shields.io/badge/Demo-GitHub%20Pages-brightgreen?logo=github)](https://wong0813.github.io/bonvoyage/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
 ## 📖 Project Overview
 **Bon Voyage** is a comprehensive, full-stack travel package management and booking platform developed for the **DES3113 Mobile Application Development** capstone project. Designed to connect tourists, travel agencies, and platform administrators, the ecosystem delivers a smooth tourism booking experience alongside operational tools for travel operators.
+
+---
+
+## 🌐 Live Demo & Deployment
+
+| Component | Provider / Platform | URL |
+| :--- | :--- | :--- |
+| **Frontend** | GitHub Pages | [https://wong0813.github.io/bonvoyage/](https://wong0813.github.io/bonvoyage/) |
+| **Backend** | Render | [https://dashboard.render.com/web/srv-d8tljjjtqb8s73effp4g](https://dashboard.render.com/web/srv-d8tljjjtqb8s73effp4g) |
+| **Database** | Aiven MySQL | [https://console.aiven.io/account/a5c1d0b98809/project/wongchunliang8158-d899/services](https://console.aiven.io/account/a5c1d0b98809/project/wongchunliang8158-d899/services) |
 
 ---
 
